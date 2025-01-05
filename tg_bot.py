@@ -4,7 +4,7 @@ import random
 import telegram
 
 from environs import Env
-from telegram import Update, ForceReply
+from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from questions_and_answers import questions_and_answers
@@ -49,11 +49,15 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 
 def end(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Викторина завершена. Для начала новой викторины введите /start")
+    """Handles end of quiz"""
+    chat_id = update.effective_chat.id
+    score = context.user_data.get('score', 0)
+    update.message.reply_text(chat_id=chat_id, text=f"Викторина завершена.\nВаш счет: {score}\nДля начала новой викторины введите /start")
     return ConversationHandler.END
 
 
 def handle_new_question_request(update: Update, context: CallbackContext) -> None:
+    """Handles request for a new question."""
     chat_id = update.effective_chat.id
     question = random.choice(list(questions_and_answers.keys()))
     print(f'вопрос:{question}')
@@ -65,6 +69,7 @@ def handle_new_question_request(update: Update, context: CallbackContext) -> Non
 
 
 def handle_solution_attempt(update: Update, context: CallbackContext) -> None:
+    """Handles user's attempt to answer a question."""
     chat_id = update.effective_chat.id
     user_text = update.message.text
     user_answer = re.search(r'^[^.]+', user_text).group().lower().strip()
@@ -87,6 +92,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext) -> None:
 
 
 def handle_solution_give_up(update: Update, context: CallbackContext) -> None:
+    """Handles user giving up on a question."""
     chat_id = update.effective_chat.id
     current_question = context.user_data.get("current_question")
     correct_answer = questions_and_answers[current_question]
@@ -97,6 +103,7 @@ def handle_solution_give_up(update: Update, context: CallbackContext) -> None:
 
 
 def show_score(update: Update, context: CallbackContext) -> None:
+    """Shows user's current score."""
     chat_id = update.effective_chat.id
     score = context.user_data.get('score', 0)
     context.bot.send_message(chat_id=chat_id, text=f'Ваш счет: {score}', reply_markup=reply_markup)
