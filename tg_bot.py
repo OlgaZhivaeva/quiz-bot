@@ -49,10 +49,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 
 def end(update: Update, context: CallbackContext) -> None:
-    """Handles end of quiz"""
-    chat_id = update.effective_chat.id
-    score = context.user_data.get('score', 0)
-    update.message.reply_text(chat_id=chat_id, text=f"Викторина завершена.\nВаш счет: {score}\nДля начала новой викторины введите /start")
+    update.message.reply_text("Викторина завершена. Для начала новой викторины введите /start")
     return ConversationHandler.END
 
 
@@ -75,7 +72,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext) -> None:
     user_answer = re.search(r'^[^.]+', user_text).group().lower().strip()
     current_question = context.user_data.get("current_question")
     correct_answer = questions_and_answers[current_question]
-    smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip()
+    smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip().strip("'\"")
 
     if user_answer == smart_correct_answer:
         context.bot.send_message(chat_id=chat_id,

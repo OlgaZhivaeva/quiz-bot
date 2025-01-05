@@ -39,7 +39,7 @@ def handle_solution_attempt(user_data, event, vk_api, keyboard):
     """Handles user's attempt to answer a question."""
     current_question = user_data[event.user_id]['current_question']
     correct_answer = questions_and_answers[current_question]
-    smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip()
+    smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip().strip("'\"")
     user_answer = re.search(r'^[^.]+', event.text).group().lower().strip()
 
 
