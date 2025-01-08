@@ -38,7 +38,12 @@ questions_and_answers = load_questions_and_answers(questions_file_path)
 
 
 if __name__ == '__main__':
-    print(questions_and_answers)
+    for key, value in questions_and_answers.items():
+        print('вопрос:')
+        print(key)
+        print('ответ:')
+        print(value)
+        print('----------------------------------------------------------------------')
     print(f'Количество вопросов: {len(questions_and_answers)}')
 
 
