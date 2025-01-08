@@ -1,26 +1,17 @@
 import re
-import logging
 import random
-
 import telegram
 
 from environs import Env
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
-from questions_and_answers import questions_and_answers
 from redis_db import r
+from questions_and_answers import logger, questions_and_answers
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-)
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 env = Env()
 env.read_env()
-chat_id = env.str('CHAT_ID')
 tg_bot_token = env.str('TG_BOT_TOKEN')
 
 QUESTION, ANSWER = range(2)

@@ -1,14 +1,14 @@
 import vk_api as vk
 import re
 import random
-from vk_api.keyboard import VkKeyboard
-from vk_api.utils import get_random_id
 from environs import Env
+
+from vk_api.keyboard import VkKeyboard
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.utils import get_random_id
 
 from redis_db import r
-from tg_bot import logger
-from questions_and_answers import questions_and_answers
+from questions_and_answers import logger, questions_and_answers
 
 
 def start(event, vk_api, keyboard):
@@ -107,7 +107,6 @@ def handle_solution_give_up(event, vk_api, keyboard):
 
 
 def main():
-    user_data = {}
     env = Env()
     env.read_env()
     vk_group_token = env.str('VK_GROUP_TOKEN')
