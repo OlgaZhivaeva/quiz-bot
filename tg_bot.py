@@ -1,6 +1,7 @@
 import re
 import logging
 import random
+
 import telegram
 
 from environs import Env
@@ -8,6 +9,7 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from questions_and_answers import questions_and_answers
+from redis_db import r
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -30,7 +32,7 @@ def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     user = update.effective_user
 
-    chat_id = update.effective_chat.id
+    chat_id = str(update.effective_chat.id)
     update.message.reply_markdown_v2(
         fr'Привет\! {user.mention_markdown_v2()}',
         reply_markup=reply_markup
@@ -39,7 +41,7 @@ def start(update: Update, context: CallbackContext) -> None:
                      text='Нажмите "Новый вопрос" для начала викторины\n/cansel-для отмены',
                      reply_markup=reply_markup)
 
-    context.user_data['score'] = int(0)
+    r.set(f"user:{chat_id}:score", "0")
     return QUESTION
 
 
@@ -55,11 +57,11 @@ def end(update: Update, context: CallbackContext) -> None:
 
 def handle_new_question_request(update: Update, context: CallbackContext) -> None:
     """Handles request for a new question."""
-    chat_id = update.effective_chat.id
+    chat_id = str(update.effective_chat.id)
     question = random.choice(list(questions_and_answers.keys()))
     print(f'вопрос:{question}')
     print(f'ответ:{questions_and_answers[question]}')
-    context.user_data["current_question"] = question
+    r.set(f"user:{chat_id}:current_question", question)
     context.bot.send_message(chat_id=chat_id, text=question, reply_markup=reply_markup)
 
     return ANSWER
@@ -67,10 +69,10 @@ def handle_new_question_request(update: Update, context: CallbackContext) -> Non
 
 def handle_solution_attempt(update: Update, context: CallbackContext) -> None:
     """Handles user's attempt to answer a question."""
-    chat_id = update.effective_chat.id
+    chat_id = str(update.effective_chat.id)
     user_text = update.message.text
     user_answer = re.search(r'^[^.]+', user_text).group().lower().strip()
-    current_question = context.user_data.get("current_question")
+    current_question = r.get(f"user:{chat_id}:current_question")
     correct_answer = questions_and_answers[current_question]
     smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip().strip("'\"")
 
@@ -78,7 +80,8 @@ def handle_solution_attempt(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat_id=chat_id,
                                  text='Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"',
                                  reply_markup=reply_markup)
-        context.user_data['score'] += 1
+        score = int(r.get(f"user:{chat_id}:score"))
+        r.set(f"user:{chat_id}:score", str(score+1))
         return QUESTION
     else:
         context.bot.send_message(chat_id=chat_id,
@@ -90,8 +93,8 @@ def handle_solution_attempt(update: Update, context: CallbackContext) -> None:
 
 def handle_solution_give_up(update: Update, context: CallbackContext) -> None:
     """Handles user giving up on a question."""
-    chat_id = update.effective_chat.id
-    current_question = context.user_data.get("current_question")
+    chat_id = str(update.effective_chat.id)
+    current_question = r.get(f"user:{chat_id}:current_question")
     correct_answer = questions_and_answers[current_question]
     context.bot.send_message(chat_id=chat_id,
                             text=f'Правильный ответ: {correct_answer}. Для следующего вопроса нажми "Новый вопрос"',
@@ -101,8 +104,8 @@ def handle_solution_give_up(update: Update, context: CallbackContext) -> None:
 
 def show_score(update: Update, context: CallbackContext) -> None:
     """Shows user's current score."""
-    chat_id = update.effective_chat.id
-    score = context.user_data.get('score', 0)
+    chat_id = str(update.effective_chat.id)
+    score = r.get(f"user:{chat_id}:score")
     context.bot.send_message(chat_id=chat_id, text=f'Ваш счет: {score}', reply_markup=reply_markup)
     return ANSWER
 
@@ -138,4 +141,5 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
 

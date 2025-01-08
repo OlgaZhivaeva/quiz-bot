@@ -2,3 +2,4 @@ python-telegram-bot==13.7
 urllib3==1.26.15
 environs==11.0.0
 vk-api==11.9.9
+redis==5.2.1
