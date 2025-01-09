@@ -2,6 +2,10 @@
 
 Python chatbot for conducting quizzes on Telegram and VKontakte
 
+[tg bot](https://t.me/histori_quiz_bot)
+
+[vk bot](https://vk.com/im?media=&sel=-228903642)
+
 ### How to install
 
 Clone the repository
