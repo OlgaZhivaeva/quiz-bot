@@ -54,3 +54,14 @@ REDIS_PASSWORD=The password for your redis database
 python3 tg_bot.py
 python3 vk_bot.py
 ```
+Example of tg bot
+
+![Example of tg bot](examination_tg.gif)
+
+Example of vk bot
+
+![Example of vk bot](examination_vk.gif)
+
+### Project Goals
+
+The code is written for educational purposes on online-course for web-developers [dvmn.org](https://dvmn.org/).
