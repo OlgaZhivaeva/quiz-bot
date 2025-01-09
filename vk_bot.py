@@ -47,7 +47,6 @@ def handle_solution_attempt(event, vk_api, keyboard):
     smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip().strip("'\"")
     user_answer = re.search(r'^[^.]+', event.text).group().lower().strip()
 
-
     if user_answer == smart_correct_answer:
         vk_api.messages.send(
             user_id=event.user_id,
@@ -123,25 +122,28 @@ def main():
     keyboard.add_line()  # Переход на вторую строку
     keyboard.add_button('Завершить викторину', color="positive")
 
-    longpoll = VkLongPoll(vk_session)
-    logger.info('vk-бот запущен')
-    for event in longpoll.listen():
-        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            if event.text == 'Новый вопрос':
-                handle_new_question_request(event, vk_api, keyboard)
-            elif event.text == 'Сдаться':
-                handle_solution_give_up(event, vk_api, keyboard)
-            elif event.text == 'Мой счет':
-                show_score(event, vk_api, keyboard)
-            elif event.text == 'Завершить викторину':
-                end(event, vk_api, keyboard)
-            else:
-                user_id = str(event.user_id)
-                current_question = r.get(f"user:{user_id}:current_question")
-                if current_question is None:
-                    start(event, vk_api, keyboard)
+    try:
+        longpoll = VkLongPoll(vk_session)
+        logger.info('vk-бот запущен')
+        for event in longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                if event.text == 'Новый вопрос':
+                    handle_new_question_request(event, vk_api, keyboard)
+                elif event.text == 'Сдаться':
+                    handle_solution_give_up(event, vk_api, keyboard)
+                elif event.text == 'Мой счет':
+                    show_score(event, vk_api, keyboard)
+                elif event.text == 'Завершить викторину':
+                    end(event, vk_api, keyboard)
                 else:
-                    handle_solution_attempt(event, vk_api, keyboard)
+                    user_id = str(event.user_id)
+                    current_question = r.get(f"user:{user_id}:current_question")
+                    if current_question is None:
+                        start(event, vk_api, keyboard)
+                    else:
+                        handle_solution_attempt(event, vk_api, keyboard)
+    except Exception as er:
+        logger.exception(f'Ошибка {er}')
 
 
 if __name__ == '__main__':

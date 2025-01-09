@@ -41,7 +41,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Help!')
 
 
-def end(update: Update, context: CallbackContext) -> None:
+def end(update: Update, context: CallbackContext):
     update.message.reply_text("Викторина завершена. Для начала новой викторины введите /start")
     return ConversationHandler.END
 
@@ -102,35 +102,35 @@ def show_score(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
-    updater = Updater(tg_bot_token)
-    dispatcher = updater.dispatcher
+    try:
+        updater = Updater(tg_bot_token)
+        dispatcher = updater.dispatcher
 
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
+        conv_handler = ConversationHandler(
+            entry_points=[CommandHandler('start', start)],
 
-        states={
-            QUESTION: [MessageHandler(Filters.regex('^Новый вопрос$'), handle_new_question_request),
-                       MessageHandler(Filters.regex('^Мой счет$'), show_score)],
-            ANSWER:
-                [MessageHandler(
-                Filters.text & ~Filters.command & ~Filters.regex('^Новый вопрос$') & ~Filters.regex('^Сдаться$') & ~Filters.regex('^Мой счет$'),
-                    handle_solution_attempt),
-                MessageHandler(Filters.regex('^Сдаться$'), handle_solution_give_up),
-                MessageHandler(Filters.regex('^Новый вопрос$'), handle_new_question_request),
-                MessageHandler(Filters.regex('^Мой счет$'), show_score)]
+            states={
+                QUESTION: [MessageHandler(Filters.regex('^Новый вопрос$'), handle_new_question_request),
+                           MessageHandler(Filters.regex('^Мой счет$'), show_score)],
+                ANSWER:
+                    [MessageHandler(
+                    Filters.text & ~Filters.command & ~Filters.regex('^Новый вопрос$') & ~Filters.regex('^Сдаться$') & ~Filters.regex('^Мой счет$'),
+                        handle_solution_attempt),
+                    MessageHandler(Filters.regex('^Сдаться$'), handle_solution_give_up),
+                    MessageHandler(Filters.regex('^Новый вопрос$'), handle_new_question_request),
+                    MessageHandler(Filters.regex('^Мой счет$'), show_score)]
 
-        },
+            },
 
-        fallbacks=[CommandHandler('cansel', end)]
-    )
+            fallbacks=[CommandHandler('cansel', end)]
+        )
 
-    dispatcher.add_handler(conv_handler)
+        dispatcher.add_handler(conv_handler)
 
-    updater.start_polling()
-    updater.idle()
-
+        updater.start_polling()
+        updater.idle()
+    except Exception as er:
+        logger.exception(f'Ошибка {er}')
 
 if __name__ == '__main__':
     main()
-
-
