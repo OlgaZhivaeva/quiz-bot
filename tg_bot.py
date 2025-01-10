@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from redis_db import r
-from quiz_data_parser import logger, questions_and_answers
+from quiz_data_parser import logger, get_questions_and_answers
 
 
 env = Env()
@@ -17,6 +17,7 @@ tg_bot_token = env.str('TG_BOT_TOKEN')
 QUESTION, ANSWER = range(2)
 
 reply_markup = telegram.ReplyKeyboardMarkup([['Новый вопрос', 'Сдаться'], ['Мой счет']])
+questions_and_answers = get_questions_and_answers()
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -102,6 +103,7 @@ def show_score(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
+
     try:
         updater = Updater(tg_bot_token)
         dispatcher = updater.dispatcher

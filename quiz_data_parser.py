@@ -4,16 +4,13 @@ from pathlib import Path
 from environs import Env
 
 
-env = Env()
-env.read_env()
-questions_file_name = env.str('QUESTIONS_FILE', '1vs1200.txt')
-
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 def load_questions_and_answers(file_path):
     """Downloads and parses questions and answers."""
@@ -33,11 +30,18 @@ def load_questions_and_answers(file_path):
         return {}
 
 
-questions_file_path = Path(__file__).parent / questions_file_name
-questions_and_answers = load_questions_and_answers(questions_file_path)
+def get_questions_and_answers():
+    """Get questions and answers dictionary."""
+    env = Env()
+    env.read_env()
+    questions_file_name = env.str('QUESTIONS_FILE', '1vs1200.txt')
+    questions_file_path = Path(__file__).parent / questions_file_name
+    questions_and_answers = load_questions_and_answers(questions_file_path)
+    return questions_and_answers
 
 
-if __name__ == '__main__':
+def main():
+    questions_and_answers = get_questions_and_answers()
     for key, value in questions_and_answers.items():
         print('вопрос:')
         print(key)
@@ -47,7 +51,5 @@ if __name__ == '__main__':
     print(f'Количество вопросов: {len(questions_and_answers)}')
 
 
-
-
-
-
+if __name__ == '__main__':
+    main()

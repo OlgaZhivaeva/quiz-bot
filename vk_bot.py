@@ -8,7 +8,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from redis_db import r
-from quiz_data_parser import logger, questions_and_answers
+from quiz_data_parser import logger, get_questions_and_answers
 
 
 def start(event, vk_api, keyboard):
@@ -24,7 +24,7 @@ def start(event, vk_api, keyboard):
     r.set(f"user:{user_id}:score", "0")
 
 
-def handle_new_question_request(event, vk_api, keyboard):
+def handle_new_question_request(questions_and_answers, event, vk_api, keyboard):
     """Handles request for a new question."""
     user_id = str(event.user_id)
     question = random.choice(list(questions_and_answers.keys()))
@@ -39,7 +39,7 @@ def handle_new_question_request(event, vk_api, keyboard):
     )
 
 
-def handle_solution_attempt(event, vk_api, keyboard):
+def handle_solution_attempt(questions_and_answers, event, vk_api, keyboard):
     """Handles user's attempt to answer a question."""
     user_id = str(event.user_id)
     current_question = r.get(f"user:{user_id}:current_question")
@@ -92,7 +92,7 @@ def end(event, vk_api, keyboard):
     r.delete(f"user:{user_id}:current_question")
 
 
-def handle_solution_give_up(event, vk_api, keyboard):
+def handle_solution_give_up(questions_and_answers, event, vk_api, keyboard):
     """Handles user giving up on a question."""
     user_id = str(event.user_id)
     current_question = r.get(f"user:{user_id}:current_question")
@@ -112,6 +112,8 @@ def main():
     vk_session = vk.VkApi(token=vk_group_token)
     vk_api = vk_session.get_api()
 
+    questions_and_answers = get_questions_and_answers()
+
     keyboard = VkKeyboard(one_time=True)
 
     keyboard.add_button('Новый вопрос', color="primary")
@@ -128,9 +130,9 @@ def main():
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 if event.text == 'Новый вопрос':
-                    handle_new_question_request(event, vk_api, keyboard)
+                    handle_new_question_request(questions_and_answers, event, vk_api, keyboard)
                 elif event.text == 'Сдаться':
-                    handle_solution_give_up(event, vk_api, keyboard)
+                    handle_solution_give_up(questions_and_answers, event, vk_api, keyboard)
                 elif event.text == 'Мой счет':
                     show_score(event, vk_api, keyboard)
                 elif event.text == 'Завершить викторину':
@@ -141,7 +143,7 @@ def main():
                     if current_question is None:
                         start(event, vk_api, keyboard)
                     else:
-                        handle_solution_attempt(event, vk_api, keyboard)
+                        handle_solution_attempt(questions_and_answers, event, vk_api, keyboard)
     except Exception as er:
         logger.exception(f'Ошибка {er}')
 
