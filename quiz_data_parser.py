@@ -4,12 +4,7 @@ from pathlib import Path
 from environs import Env
 
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-)
-
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def load_questions_and_answers(file_path):
@@ -32,6 +27,10 @@ def load_questions_and_answers(file_path):
 
 def get_questions_and_answers():
     """Get questions and answers dictionary."""
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    )
+    logger.setLevel(logging.DEBUG)
     env = Env()
     env.read_env()
     questions_file_name = env.str('QUESTIONS_FILE', '1vs1200.txt')

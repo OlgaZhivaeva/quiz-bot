@@ -1,3 +1,4 @@
+import logging
 import re
 import random
 import telegram
@@ -7,12 +8,10 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from redis_db import r
-from quiz_data_parser import logger, get_questions_and_answers
+from quiz_data_parser import get_questions_and_answers
 
+logger = logging.getLogger(__name__)
 
-env = Env()
-env.read_env()
-tg_bot_token = env.str('TG_BOT_TOKEN')
 
 QUESTION, ANSWER = range(2)
 
@@ -103,6 +102,13 @@ def show_score(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    )
+    logger.setLevel(logging.DEBUG)
+    env = Env()
+    env.read_env()
+    tg_bot_token = env.str('TG_BOT_TOKEN')
 
     try:
         updater = Updater(tg_bot_token)

@@ -1,14 +1,18 @@
+import logging
 import vk_api as vk
 import re
 import random
-from environs import Env
 
+from environs import Env
 from vk_api.keyboard import VkKeyboard
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from redis_db import r
 from quiz_data_parser import logger, get_questions_and_answers
+
+
+logger = logging.getLogger(__name__)
 
 
 def start(event, vk_api, keyboard):
@@ -106,6 +110,10 @@ def handle_solution_give_up(questions_and_answers, event, vk_api, keyboard):
 
 
 def main():
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    )
+    logger.setLevel(logging.DEBUG)
     env = Env()
     env.read_env()
     vk_group_token = env.str('VK_GROUP_TOKEN')
