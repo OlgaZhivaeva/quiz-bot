@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from redis_db import r
-from questions_and_answers import logger, questions_and_answers
+from quiz_data_parser import logger, questions_and_answers
 
 
 env = Env()

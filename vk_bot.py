@@ -8,7 +8,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
 from redis_db import r
-from questions_and_answers import logger, questions_and_answers
+from quiz_data_parser import logger, questions_and_answers
 
 
 def start(event, vk_api, keyboard):
