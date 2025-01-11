@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def start(redis_db, event, vk_api, keyboard):
     """Send a message to start the quiz."""
-    user_id = str(event.user_id)
+    user_id = event.user_id
     vk_api.messages.send(
         user_id=event.user_id,
         random_id=get_random_id(),
@@ -30,7 +30,7 @@ def start(redis_db, event, vk_api, keyboard):
 
 def handle_new_question_request(redis_db, questions_and_answers, event, vk_api, keyboard):
     """Handles request for a new question."""
-    user_id = str(event.user_id)
+    user_id = event.user_id
     question = random.choice(list(questions_and_answers.keys()))
     redis_db.set(f"user:{user_id}:current_question", question)
     vk_api.messages.send(
@@ -43,7 +43,7 @@ def handle_new_question_request(redis_db, questions_and_answers, event, vk_api, 
 
 def handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard):
     """Handles user's attempt to answer a question."""
-    user_id = str(event.user_id)
+    user_id = event.user_id
     current_question = redis_db.get(f"user:{user_id}:current_question")
     correct_answer = questions_and_answers[current_question]
     smart_correct_answer = re.search(r'^[^(^.]+', correct_answer).group().lower().strip().strip("'\"")
@@ -56,7 +56,7 @@ def handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyb
             keyboard=keyboard.get_keyboard(),
             message='Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"'
         )
-        score = int(r.get(f"user:{user_id}:score"))
+        score = int(redis_db.get(f"user:{user_id}:score"))
         redis_db.set(f"user:{user_id}:score", str(score + 1))
 
     else:
@@ -70,7 +70,7 @@ def handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyb
 
 def show_score(redis_db, event, vk_api, keyboard):
     """Shows user's current score."""
-    user_id = str(event.user_id)
+    user_id = event.user_id
     score = redis_db.get(f"user:{user_id}:score")
 
     vk_api.messages.send(
@@ -83,7 +83,7 @@ def show_score(redis_db, event, vk_api, keyboard):
 
 def end(redis_db, event, vk_api, keyboard):
     """Handles end of quiz"""
-    user_id = str(event.user_id)
+    user_id = event.user_id
     score = redis_db.get(f"user:{user_id}:score")
     vk_api.messages.send(
         user_id=event.user_id,
@@ -96,7 +96,7 @@ def end(redis_db, event, vk_api, keyboard):
 
 def handle_solution_give_up(redis_db, questions_and_answers, event, vk_api, keyboard):
     """Handles user giving up on a question."""
-    user_id = str(event.user_id)
+    user_id = event.user_id
     current_question = redis_db.get(f"user:{user_id}:current_question")
     correct_answer = questions_and_answers[current_question]
     vk_api.messages.send(
@@ -115,6 +115,9 @@ def main():
 
     env = Env()
     env.read_env()
+    vk_group_token = env.str('VK_GROUP_TOKEN')
+    vk_session = vk.VkApi(token=vk_group_token)
+    vk_api = vk_session.get_api()
     redis_host = env.str('REDIS_HOST')
     redis_port = env.str('REDIS_PORT')
     redis_password = env.str('REDIS_PASSWORD')
@@ -125,9 +128,6 @@ def main():
         charset="utf-8",
         password=redis_password,
     )
-    vk_group_token = env.str('VK_GROUP_TOKEN')
-    vk_session = vk.VkApi(token=vk_group_token)
-    vk_api = vk_session.get_api()
 
     questions_and_answers = get_questions_and_answers()
 
@@ -155,7 +155,7 @@ def main():
                 elif event.text == 'Завершить викторину':
                     end(redis_db, event, vk_api, keyboard)
                 else:
-                    user_id = str(redis_db, event.user_id)
+                    user_id = event.user_id
                     current_question = redis_db.get(f"user:{user_id}:current_question")
                     if current_question is None:
                         start(redis_db, event, vk_api, keyboard)

@@ -20,7 +20,7 @@ def start(update: Update, context: CallbackContext, redis_db, reply_markup) -> N
     """Send a message when the command /start is issued."""
     user = update.effective_user
 
-    chat_id = str(update.effective_chat.id)
+    chat_id = update.effective_chat.id
     update.message.reply_markdown_v2(
         fr'Привет\! {user.mention_markdown_v2()}',
         reply_markup=reply_markup
@@ -45,7 +45,7 @@ def end(update: Update, context: CallbackContext):
 
 def handle_new_question_request(update: Update, context: CallbackContext, redis_db, reply_markup, questions_and_answers) -> None:
     """Handles request for a new question."""
-    chat_id = str(update.effective_chat.id)
+    chat_id = update.effective_chat.id
     question = random.choice(list(questions_and_answers.keys()))
     redis_db.set(f"user:{chat_id}:current_question", question)
     context.bot.send_message(chat_id=chat_id, text=question, reply_markup=reply_markup)
@@ -55,7 +55,7 @@ def handle_new_question_request(update: Update, context: CallbackContext, redis_
 
 def handle_solution_attempt(update: Update, context: CallbackContext, redis_db, reply_markup, questions_and_answers) -> None:
     """Handles user's attempt to answer a question."""
-    chat_id = str(update.effective_chat.id)
+    chat_id = update.effective_chat.id
     user_text = update.message.text
     user_answer = re.search(r'^[^.]+', user_text).group().lower().strip()
     current_question = redis_db.get(f"user:{chat_id}:current_question")
@@ -79,7 +79,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, redis_db, 
 
 def handle_solution_give_up(update: Update, context: CallbackContext, redis_db, reply_markup, questions_and_answers) -> None:
     """Handles user giving up on a question."""
-    chat_id = str(update.effective_chat.id)
+    chat_id = update.effective_chat.id
     current_question = redis_db.get(f"user:{chat_id}:current_question")
     correct_answer = questions_and_answers[current_question]
     context.bot.send_message(chat_id=chat_id,
@@ -90,7 +90,7 @@ def handle_solution_give_up(update: Update, context: CallbackContext, redis_db, 
 
 def show_score(update: Update, context: CallbackContext, redis_db, reply_markup) -> None:
     """Shows user's current score."""
-    chat_id = str(update.effective_chat.id)
+    chat_id = update.effective_chat.id
     score = redis_db.get(f"user:{chat_id}:score")
     context.bot.send_message(chat_id=chat_id, text=f'Ваш счет: {score}', reply_markup=reply_markup)
     return ANSWER
