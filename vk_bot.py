@@ -81,7 +81,7 @@ def show_score(redis_db, event, vk_api, keyboard):
     )
 
 
-def end(redis_db, event, vk_api, keyboard):
+def end(redis_db, event, vk_api):
     """Handles end of quiz"""
     user_id = event.user_id
     score = redis_db.get(f"user:{user_id}:score")
@@ -153,7 +153,7 @@ def main():
                 elif event.text == 'Мой счет':
                     show_score(redis_db, event, vk_api, keyboard)
                 elif event.text == 'Завершить викторину':
-                    end(redis_db, event, vk_api, keyboard)
+                    end(redis_db, event, vk_api)
                 else:
                     user_id = event.user_id
                     current_question = redis_db.get(f"user:{user_id}:current_question")

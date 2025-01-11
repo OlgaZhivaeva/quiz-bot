@@ -132,7 +132,7 @@ def main() -> None:
                     MessageHandler(Filters.regex('^Мой счет$'),
                                    lambda update, context: show_score(update, context, redis_db, reply_markup))
                 ],
-                ANSWER:[
+                ANSWER: [
                     MessageHandler(Filters.text & ~Filters.command & ~Filters.regex('^Новый вопрос$') & ~Filters.regex('^Сдаться$') & ~Filters.regex('^Мой счет$'),
                                    lambda update, context: handle_solution_attempt(update, context, redis_db, reply_markup, questions_and_answers)),
                     MessageHandler(Filters.regex('^Сдаться$'),
@@ -154,6 +154,7 @@ def main() -> None:
         updater.idle()
     except Exception as er:
         logger.exception(f'Ошибка {er}')
+
 
 if __name__ == '__main__':
     main()
