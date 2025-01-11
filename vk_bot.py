@@ -157,10 +157,11 @@ def main():
                 else:
                     user_id = event.user_id
                     current_question = redis_db.get(f"user:{user_id}:current_question")
-                    if current_question is None:
-                        start(redis_db, event, vk_api, keyboard)
-                    else:
+                    if current_question:
                         handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard)
+                        continue
+                    start(redis_db, event, vk_api, keyboard)
+
     except Exception as er:
         logger.exception(f'Ошибка {er}')
 
