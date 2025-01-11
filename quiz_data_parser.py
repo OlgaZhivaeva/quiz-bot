@@ -29,9 +29,6 @@ def get_questions_and_answers():
     except FileNotFoundError:
         logger.error(f'Файл {questions_file_path} не найден.')
         return {}
-    except Exception as e:
-        logger.error(f'Ошибка при загрузке файла: {e}')
-        return {}
 
 
 def main():
