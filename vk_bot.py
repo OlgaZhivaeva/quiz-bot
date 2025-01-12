@@ -115,53 +115,58 @@ def main():
 
     env = Env()
     env.read_env()
+    questions_file_name = env.str('QUESTIONS_FILE', '1vs1200.txt')
     vk_group_token = env.str('VK_GROUP_TOKEN')
     vk_session = vk.VkApi(token=vk_group_token)
     vk_api = vk_session.get_api()
     redis_host = env.str('REDIS_HOST')
     redis_port = env.str('REDIS_PORT')
     redis_password = env.str('REDIS_PASSWORD')
-    redis_db = redis.StrictRedis(
-        host=redis_host,
-        port=redis_port,
-        decode_responses=True,
-        charset="utf-8",
-        password=redis_password,
-    )
-
-    questions_and_answers = get_questions_and_answers()
-
-    keyboard = VkKeyboard(one_time=True)
-
-    keyboard.add_button('Новый вопрос', color="primary")
-    keyboard.add_button('Сдаться', color="negative")
-
-    keyboard.add_line()  # Переход на вторую строку
-    keyboard.add_button('Мой счет', color="default")
-    keyboard.add_line()  # Переход на вторую строку
-    keyboard.add_button('Завершить викторину', color="positive")
 
     try:
+        questions_and_answers = get_questions_and_answers(questions_file_name)
+        redis_db = redis.StrictRedis(
+            host=redis_host,
+            port=redis_port,
+            decode_responses=True,
+            charset="utf-8",
+            password=redis_password,
+        )
+
+        keyboard = VkKeyboard(one_time=True)
+
+        keyboard.add_button('Новый вопрос', color="primary")
+        keyboard.add_button('Сдаться', color="negative")
+
+        keyboard.add_line()  # Переход на вторую строку
+        keyboard.add_button('Мой счет', color="default")
+        keyboard.add_line()  # Переход на вторую строку
+        keyboard.add_button('Завершить викторину', color="positive")
+
         longpoll = VkLongPoll(vk_session)
         logger.info('vk-бот запущен')
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 if event.text == 'Новый вопрос':
                     handle_new_question_request(redis_db, questions_and_answers, event, vk_api, keyboard)
-                elif event.text == 'Сдаться':
+                    continue
+                if event.text == 'Сдаться':
                     handle_solution_give_up(redis_db, questions_and_answers, event, vk_api, keyboard)
-                elif event.text == 'Мой счет':
+                    continue
+                if event.text == 'Мой счет':
                     show_score(redis_db, event, vk_api, keyboard)
-                elif event.text == 'Завершить викторину':
+                    continue
+                if event.text == 'Завершить викторину':
                     end(redis_db, event, vk_api)
-                else:
-                    user_id = event.user_id
-                    current_question = redis_db.get(f"user:{user_id}:current_question")
-                    if current_question:
-                        handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard)
-                        continue
-                    start(redis_db, event, vk_api, keyboard)
-
+                    continue
+                user_id = event.user_id
+                current_question = redis_db.get(f"user:{user_id}:current_question")
+                if current_question:
+                    handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard)
+                    continue
+                start(redis_db, event, vk_api, keyboard)
+    except FileNotFoundError:
+        logger.error(f'Файл {questions_file_name} не найден.')
     except Exception as er:
         logger.exception(f'Ошибка {er}')
 

@@ -103,22 +103,23 @@ def main() -> None:
     logger.setLevel(logging.DEBUG)
 
     reply_markup = telegram.ReplyKeyboardMarkup([['Новый вопрос', 'Сдаться'], ['Мой счет']])
-    questions_and_answers = get_questions_and_answers()
     env = Env()
     env.read_env()
+    questions_file_name = env.str('QUESTIONS_FILE', '1vs1200.txt')
     tg_bot_token = env.str('TG_BOT_TOKEN')
     redis_host = env.str('REDIS_HOST')
     redis_port = env.str('REDIS_PORT')
     redis_password = env.str('REDIS_PASSWORD')
-    redis_db = redis.StrictRedis(
-        host=redis_host,
-        port=redis_port,
-        decode_responses=True,
-        charset="utf-8",
-        password=redis_password,
-    )
-
     try:
+        questions_and_answers = get_questions_and_answers(questions_file_name)
+        redis_db = redis.StrictRedis(
+            host=redis_host,
+            port=redis_port,
+            decode_responses=True,
+            charset="utf-8",
+            password=redis_password,
+        )
+
         updater = Updater(tg_bot_token)
         dispatcher = updater.dispatcher
 
@@ -152,6 +153,8 @@ def main() -> None:
 
         updater.start_polling()
         updater.idle()
+    except FileNotFoundError:
+        logger.error(f'Файл {questions_file_name} не найден.')
     except Exception as er:
         logger.exception(f'Ошибка {er}')
 
