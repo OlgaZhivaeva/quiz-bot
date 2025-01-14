@@ -146,25 +146,26 @@ def main():
         longpoll = VkLongPoll(vk_session)
         logger.info('vk-бот запущен')
         for event in longpoll.listen():
-            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                if event.text == 'Новый вопрос':
-                    handle_new_question_request(redis_db, questions_and_answers, event, vk_api, keyboard)
-                    continue
-                if event.text == 'Сдаться':
-                    handle_solution_give_up(redis_db, questions_and_answers, event, vk_api, keyboard)
-                    continue
-                if event.text == 'Мой счет':
-                    show_score(redis_db, event, vk_api, keyboard)
-                    continue
-                if event.text == 'Завершить викторину':
-                    end(redis_db, event, vk_api)
-                    continue
-                user_id = event.user_id
-                current_question = redis_db.get(f"user:{user_id}:current_question")
-                if current_question:
-                    handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard)
-                    continue
-                start(redis_db, event, vk_api, keyboard)
+            if event.type != VkEventType.MESSAGE_NEW and event.to_me:
+                continue
+            if event.text == 'Новый вопрос':
+                handle_new_question_request(redis_db, questions_and_answers, event, vk_api, keyboard)
+                continue
+            if event.text == 'Сдаться':
+                handle_solution_give_up(redis_db, questions_and_answers, event, vk_api, keyboard)
+                continue
+            if event.text == 'Мой счет':
+                show_score(redis_db, event, vk_api, keyboard)
+                continue
+            if event.text == 'Завершить викторину':
+                end(redis_db, event, vk_api)
+                continue
+            user_id = event.user_id
+            current_question = redis_db.get(f"user:{user_id}:current_question")
+            if current_question:
+                handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard)
+                continue
+            start(redis_db, event, vk_api, keyboard)
     except FileNotFoundError:
         logger.error(f'Файл {questions_file_name} не найден.')
     except Exception as er:
