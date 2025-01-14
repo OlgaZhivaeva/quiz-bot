@@ -146,7 +146,7 @@ def main():
         longpoll = VkLongPoll(vk_session)
         logger.info('vk-бот запущен')
         for event in longpoll.listen():
-            if event.type != VkEventType.MESSAGE_NEW and event.to_me:
+            if event.type != VkEventType.MESSAGE_NEW or not event.to_me:
                 continue
             if event.text == 'Новый вопрос':
                 handle_new_question_request(redis_db, questions_and_answers, event, vk_api, keyboard)
@@ -166,6 +166,7 @@ def main():
                 handle_solution_attempt(redis_db, questions_and_answers, event, vk_api, keyboard)
                 continue
             start(redis_db, event, vk_api, keyboard)
+
     except FileNotFoundError:
         logger.error(f'Файл {questions_file_name} не найден.')
     except Exception as er:
